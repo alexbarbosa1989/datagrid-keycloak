@@ -1,0 +1,61 @@
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: rhbk-db-credentials
+  namespace: ${NAMESPACE}
+type: Opaque
+stringData:
+  username: keycloak
+  password: ${POSTGRES_PASSWORD}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgresql
+  namespace: ${NAMESPACE}
+spec:
+  selector:
+    app: postgresql
+  ports:
+    - port: 5432
+      targetPort: 5432
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: postgresql
+  namespace: ${NAMESPACE}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: postgresql
+  template:
+    metadata:
+      labels:
+        app: postgresql
+    spec:
+      containers:
+        - name: postgresql
+          image: registry.redhat.io/rhel9/postgresql-15:latest
+          env:
+            - name: POSTGRESQL_USER
+              valueFrom:
+                secretKeyRef:
+                  name: rhbk-db-credentials
+                  key: username
+            - name: POSTGRESQL_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: rhbk-db-credentials
+                  key: password
+            - name: POSTGRESQL_DATABASE
+              value: keycloak
+          ports:
+            - containerPort: 5432
+          readinessProbe:
+            exec:
+              command: ["psql", "-U", "keycloak", "-d", "keycloak", "-c", "SELECT 1"]
+            initialDelaySeconds: 10
+            periodSeconds: 5

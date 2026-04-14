@@ -1,0 +1,79 @@
+apiVersion: k8s.keycloak.org/v2alpha1
+kind: KeycloakRealmImport
+metadata:
+  name: datagrid-realm
+  namespace: ${NAMESPACE}
+spec:
+  keycloakCRName: rhbk
+  realm:
+    realm: datagrid
+    displayName: "Data Grid Realm"
+    enabled: true
+
+    clients:
+      # ── Public client used by the Data Grid web console (browser-based SSO) ──
+      - clientId: datagrid-console
+        name: "Data Grid Console"
+        enabled: true
+        publicClient: true
+        standardFlowEnabled: true
+        directAccessGrantsEnabled: false
+        serviceAccountsEnabled: false
+        redirectUris:
+          - "https://${DATAGRID_HOST}/*"
+        webOrigins:
+          - "https://${DATAGRID_HOST}"
+        protocol: openid-connect
+
+      # ── Confidential client used by Data Grid server for token introspection ──
+      - clientId: datagrid-client
+        name: "Data Grid Server"
+        enabled: true
+        publicClient: false
+        standardFlowEnabled: false
+        directAccessGrantsEnabled: true
+        serviceAccountsEnabled: true
+        secret: "${DG_CLIENT_SECRET}"
+        protocol: openid-connect
+
+    roles:
+      realm:
+        - name: admin
+          description: "Full read/write access plus administrative operations"
+        - name: application
+          description: "Full read/write access for application use"
+        - name: observer
+          description: "Read-only access"
+        - name: monitor
+          description: "Statistics and monitoring access"
+
+    users:
+      - username: admin-user
+        enabled: true
+        # KC v26 requires firstName, lastName, email and emailVerified=true or
+        # logins fail with "Account is not fully set up" even when requiredActions=[].
+        firstName: Admin
+        lastName: User
+        email: admin-user@example.com
+        emailVerified: true
+        requiredActions: []
+        credentials:
+          - type: password
+            value: "${ADMIN_USER_PASSWORD}"
+            temporary: false
+        realmRoles:
+          - admin
+
+      - username: app-user
+        enabled: true
+        firstName: App
+        lastName: User
+        email: app-user@example.com
+        emailVerified: true
+        requiredActions: []
+        credentials:
+          - type: password
+            value: "${APP_USER_PASSWORD}"
+            temporary: false
+        realmRoles:
+          - application

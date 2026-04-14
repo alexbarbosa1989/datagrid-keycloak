@@ -1,0 +1,37 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: datagrid-server-config
+  namespace: ${NAMESPACE}
+data:
+  infinispan-config.yaml: |
+    infinispan:
+      server:
+        security:
+          security-realms:
+            - name: default
+              # Preserve the TLS keystore that the operator mounts via the cert secret.
+              # Without this the base XML's server-identities are overwritten, reverting
+              # Data Grid to plain HTTP and breaking the passthrough Route.
+              server-identities:
+                ssl:
+                  keystore:
+                    path: /etc/security/conf/operator-security/keystore.pem
+                    keystore-password: ""
+              # OIDC token realm – delegates all client auth to RHBK bearer tokens.
+              # auth-server-url is the external public base URL (no realm path) —
+              # Data Grid constructs the OIDC discovery URL as:
+              #   {auth-server-url}/realms/{name}/.well-known/openid-configuration
+              # and also uses it for browser redirects to Keycloak, so it MUST be
+              # reachable by end-user browsers (i.e. the public HTTPS hostname).
+              # name must match the actual Keycloak realm name.
+              # introspection-url stays internal (pod-to-pod, no external hop needed).
+              token-realm:
+                name: datagrid
+                client-id: datagrid-console
+                auth-server-url: "https://${RHBK_HOST}"
+                principal-claim: preferred_username
+                oauth2-introspection:
+                  introspection-url: "http://rhbk-service.${NAMESPACE}.svc.cluster.local:8080/realms/datagrid/protocol/openid-connect/token/introspect"
+                  client-id: datagrid-client
+                  client-secret: "${DG_CLIENT_SECRET}"

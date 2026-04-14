@@ -1,0 +1,39 @@
+apiVersion: k8s.keycloak.org/v2alpha1
+kind: Keycloak
+metadata:
+  name: rhbk
+  namespace: ${NAMESPACE}
+spec:
+  instances: 1
+  db:
+    vendor: postgres
+    host: postgresql
+    database: keycloak
+    usernameSecret:
+      name: rhbk-db-credentials
+      key: username
+    passwordSecret:
+      name: rhbk-db-credentials
+      key: password
+  http:
+    httpEnabled: true
+  hostname:
+    # External hostname used in browser redirects (OIDC login page, token issuer URL).
+    # Must be reachable by end-user browsers.
+    hostname: https://${RHBK_HOST}
+    strict: true
+    # true is required when hostname is set: internal backchannel calls (Data Grid →
+    # RHBK) resolve via request headers so they still reach the internal service,
+    # while browser redirects use the configured hostname above.
+    backchannelDynamic: false
+  # Trust X-Forwarded-Proto/Host headers set by the OpenShift router so that RHBK
+  # knows the external scheme is HTTPS even though it listens on plain HTTP internally.
+  proxy:
+    headers: xforwarded
+  ingress:
+    enabled: true
+    # Tell the OpenShift Ingress controller to use edge TLS termination:
+    # the router presents its wildcard cert to browsers, then forwards
+    # plain HTTP to the RHBK service (which listens on 8080).
+    annotations:
+      route.openshift.io/termination: edge

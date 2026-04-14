@@ -1,0 +1,41 @@
+apiVersion: infinispan.org/v1
+kind: Infinispan
+metadata:
+  name: datagrid
+  namespace: ${NAMESPACE}
+spec:
+  replicas: 1
+
+  # ConfigMap that merges the OIDC token realm + TLS config into the operator-generated XML
+  configMapName: datagrid-server-config
+
+  security:
+    endpointAuthentication: true
+    # Enable TLS on port 11222 using the OpenShift service CA so the passthrough
+    # Route can complete the TLS handshake.
+    endpointEncryption:
+      type: Service
+    authorization:
+      enabled: true
+      # Role names must match the realm roles in 02-realm-import.yaml
+      roles:
+        - name: admin
+          permissions:
+            - ALL
+        - name: application
+          permissions:
+            - ALL_WRITE
+            - ALL_READ
+            - EXEC
+            - BULK_READ
+            - BULK_WRITE
+        - name: observer
+          permissions:
+            - ALL_READ
+            - BULK_READ
+        - name: monitor
+          permissions:
+            - MONITOR
+
+  expose:
+    type: Route
