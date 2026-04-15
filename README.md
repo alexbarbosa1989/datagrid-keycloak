@@ -52,6 +52,11 @@ ADMIN_USER_PASSWORD=adminpass \
 APP_USER_PASSWORD=apppass \
 ./deploy.sh
 ```
+### Example: You're already log into the OCP cluster, and have already set all the prerequisites, then just need to execute:
+```
+NAMESPACE=my-ns ./deploy.sh
+```
+
 
 At the end of a successful run, the script prints a summary with all credentials and example `curl` commands.
 
