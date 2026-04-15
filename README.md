@@ -52,7 +52,7 @@ ADMIN_USER_PASSWORD=adminpass \
 APP_USER_PASSWORD=apppass \
 ./deploy.sh
 ```
-### Example: You're already logged into the OCP cluster, and have already set all the [prerequisites](https://github.com/alexbarbosa1989/datagrid-keycloak?tab=readme-ov-file#prerequisites), then just need to execute:
+### Example: You're already logged into the OCP cluster, and have already set all the [prerequisites](https://github.com/alexbarbosa1989/datagrid-keycloak?tab=readme-ov-file#prerequisites), then you just need to reference your OCP project:
 ```
 NAMESPACE=my-ns ./deploy.sh
 ```
