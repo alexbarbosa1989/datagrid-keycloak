@@ -5,7 +5,7 @@ This repository automates the deployment of **Red Hat Build of Keycloak (RHBK)**
 ## Overview
 Two authentication paths share the same RHBK realm:
 
-- **Web Console (browser)** — Data Grid acts as an OIDC client using the public `datagrid-console` client to drive the authorization code flow. After login at RHBK, the browser is redirected back and Data Grid establishes a session.
+- **Web Console (browser)** — Data Grid acts as an OIDC client using the public `datagrid-console` client to drive the authorization code flow. After logging in at RHBK, the browser is redirected back, and Data Grid establishes a session.
 - **API / CLI** — callers obtain a Bearer token directly from RHBK (password grant or client credentials) and present it on each request. Data Grid introspects the token via the confidential `datagrid-client`.
 
 Realm roles from the token are mapped to Data Grid authorization permissions in both paths.
