@@ -119,7 +119,7 @@ These two clients have distinct roles in `03-infinispan-config.yaml`:
 
 ## Web Console Login
 
-Open `https://<DATAGRID_HOST>/console` in a browser. The console redirects to the RHBK login page for the `datagrid` realm. Log in with one of the default users (e.g. `admin-user`) and you are redirected back to the console with full access based on the user's realm role.
+Open `https://<DATAGRID_HOST>/console` in a browser. The console redirects to the RHBK login page for the `datagrid` realm. Log in with one of the default users (e.g., `admin-user`), and you are redirected back to the console with full access based on the user's realm role.
 
 ## Getting a Token Manually (CLI / API)
 
@@ -138,16 +138,16 @@ curl -sk -H "Authorization: Bearer <token>" \
 
 ## Known Gotchas
 
-- **`KeycloakRealmImport` + dev-file DB** — The operator runs the import as a Kubernetes Job using `kc.sh import` (CLI), which opens a second H2 file database. The running RHBK pod holds an exclusive lock, so the import job silently creates its own H2 instance and realm data is lost after the job exits. This deployment avoids the issue by using **PostgreSQL** as the backend. If you must use `dev-file`, import realms via `kcadm.sh` REST API instead.
+- **`KeycloakRealmImport` + dev-file DB** — The operator runs the import as a Kubernetes Job using `kc.sh import` (CLI), which opens a second H2 file database. The running RHBK pod holds an exclusive lock, so the import job silently creates its own H2 instance, and realm data is lost after the job exits. This deployment avoids the issue by using **PostgreSQL** as the backend. If you must use `dev-file`, import realms via `kcadm.sh` REST API instead.
 
-- **`backchannelDynamic: true` requires a hostname** — RHBK v26 raises `hostname-backchannel-dynamic must be set to false when no hostname is provided`. The manifests always set a hostname so `backchannelDynamic: true` is safe here.
+- **`backchannelDynamic: true` requires a hostname** — RHBK v26 raises `hostname-backchannel-dynamic must be set to false when no hostname is provided`. The manifests always set a hostname, so `backchannelDynamic: true` is safe here.
 
 - **Data Grid authorization permissions** — `STATS` is not a valid permission in Data Grid 8.6+; use `MONITOR` instead.
 
 - **`infinispan-config.yaml` schema** — `client-id` is a required attribute directly on `token-realm`; `client-secret` goes **only** inside `oauth2-introspection`, not at both levels.
 
-- **Web console infinite redirect loop** — `token-realm.client-id` must be the **public** client (`datagrid-console`), not the confidential one. Data Grid uses this client ID to build the browser redirect URL for the OIDC authorization code flow. If the confidential client (`datagrid-client`) is set here instead, Keycloak completes the login but the token exchange fails silently on the server side, causing an infinite browser redirect. The confidential client belongs only inside `oauth2-introspection`.
+- **Web console infinite redirect loop** — `token-realm.client-id` must be the **public** client (`datagrid-console`), not the confidential one. Data Grid uses this client ID to build the browser redirect URL for the OIDC authorization code flow. If the confidential client (`datagrid-client`) is set here instead, Keycloak completes the login, but the token exchange fails silently on the server side, causing an infinite browser redirect. The confidential client belongs only inside `oauth2-introspection`.
 
-- **`token-realm.name` must match the Keycloak realm name** — Data Grid appends `/realms/{name}` to `auth-server-url` to build the OIDC discovery URL. If `name` does not match the actual realm (e.g. `keycloak` instead of `datagrid`), discovery returns 404 and the web console redirect loop starts. `auth-server-url` must be the bare server root (`https://<RHBK_HOST>`) with no realm path appended manually.
+- **`token-realm.name` must match the Keycloak realm name** — Data Grid appends `/realms/{name}` to `auth-server-url` to build the OIDC discovery URL. If `name` does not match the actual realm (e.g., `keycloak` instead of `datagrid`), discovery returns 404 and the web console redirect loop starts. `auth-server-url` must be the bare server root (`https://<RHBK_HOST>`) with no realm path appended manually.
 
 - **Keycloak v26 user profiles** — `firstName`, `lastName`, `email`, and `emailVerified: true` must all be set on users or logins fail with *"Account is not fully set up"*, even when `requiredActions` is empty.
